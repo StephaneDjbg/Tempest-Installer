@@ -25,9 +25,9 @@ HRF_SHA  ?=
 
 # ---------- generic vars --------------------------------------
 JOBS      ?= $(shell nproc 2>/dev/null || echo 4)
-ROOT_DIR   = $(CURDIR)              # folder where this Makefile is located
-SRC_DIR    = $(ROOT_DIR)/TempestSDR # repository cloned locally
-WIN_PREFIX = $(ROOT_DIR)\TempestSDR # same logic on Windows side
+ROOT_DIR   = $(CURDIR)
+SRC_DIR    = $(ROOT_DIR)/TempestSDR
+WIN_PREFIX = $(ROOT_DIR)\TempestSDR
 
 HACKRF_GUI_REPO = https://github.com/neib/HackRF_Transfer-GUI.git
 HACKRF_GUI_DIR  = $(SRC_DIR)/HackRF_Transfer-GUI
