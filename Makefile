@@ -8,6 +8,17 @@ ifeq ($(OS),Windows_NT)
   TARGET_OS := windows
 else ifeq ($(UNAME_S),Linux)
   TARGET_OS := linux
+  # Architecture detection for Linux
+  UNAME_M := $(shell uname -m)
+  ifeq ($(UNAME_M),x86_64)
+    LINUX_ARCH := X64
+  else ifeq ($(UNAME_M),aarch64)
+    LINUX_ARCH := ARM64
+  else ifeq ($(UNAME_M),armv7l)
+    LINUX_ARCH := ARM
+  else
+    LINUX_ARCH := $(UNAME_M)
+  endif
 else
   $(error Unsupported OS)
 endif
@@ -70,17 +81,15 @@ linux:
 	@echo ">>> configure JAVA_HOME"
 	@export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-	@echo ">>> build native libs  (make -j$(JOBS))"
+	@echo ">>> build native libs  (make -j$(JOBS)) for $(LINUX_ARCH)"
 	JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 $(MAKE) -C $(SRC_DIR) -j$(JOBS)
 
-	@echo ">>> build Java GUI     (make -j$(JOBS))"
+	@echo ">>> build Java GUI     (make -j$(JOBS)) for $(LINUX_ARCH)"
 	JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 $(MAKE) -C $(SRC_DIR)/JavaGUI -j$(JOBS)
 
-	@echo ">>> duplicate libs to lib/LINUX/X64 && refresh JAR"
-	@mkdir -p $(SRC_DIR)/JavaGUI/lib/LINUX/X64
-	@cp -f $(SRC_DIR)/JavaGUI/lib/LINUX/*.so $(SRC_DIR)/JavaGUI/lib/LINUX/X64/
+	@echo ">>> refresh JAR with native libraries ($(LINUX_ARCH))"
 	@cd $(SRC_DIR)/JavaGUI && \
-	     find lib/LINUX/X64 -type f -print0 | xargs -0 jar uf JTempestSDR.jar
+	     find lib/LINUX/$(LINUX_ARCH) -type f -print0 | xargs -0 jar uf JTempestSDR.jar
 
 	@echo ">>> clone / update HackRF_Transfer-GUI"
 	@if [ ! -d $(HACKRF_GUI_DIR) ]; then \
@@ -139,7 +148,7 @@ clean-linux:
 	@echo ">>> cleaning Linux build artifacts"
 	@if [ -d $(SRC_DIR) ]; then \
 	    $(MAKE) -k -C $(SRC_DIR) clean 2>/dev/null || true; \
-	    rm -rf $(SRC_DIR)/JavaGUI/lib/LINUX/X64; \
+	    rm -rf $(SRC_DIR)/JavaGUI/lib/LINUX/*; \
 	    rm -f $(SRC_DIR)/JavaGUI/JTempestSDR.jar; \
 	fi
 	@rm -rf $(HACKRF_GUI_DIR)
