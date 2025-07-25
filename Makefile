@@ -67,11 +67,14 @@ linux:
 	     cd $(SRC_DIR) && git pull && git submodule update --init --recursive; \
 	fi
 
+	@echo ">>> configure JAVA_HOME"
+	@export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
 	@echo ">>> build native libs  (make -j$(JOBS))"
-	$(MAKE) -C $(SRC_DIR) -j$(JOBS)
+	JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 $(MAKE) -C $(SRC_DIR) -j$(JOBS)
 
 	@echo ">>> build Java GUI     (make -j$(JOBS))"
-	$(MAKE) -C $(SRC_DIR)/JavaGUI -j$(JOBS)
+	JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 $(MAKE) -C $(SRC_DIR)/JavaGUI -j$(JOBS)
 
 	@echo ">>> duplicate libs to lib/LINUX/X64 && refresh JAR"
 	@mkdir -p $(SRC_DIR)/JavaGUI/lib/LINUX/X64
@@ -128,9 +131,31 @@ windows:
 # --------------------------------------------------------------
 # CLEAN
 # --------------------------------------------------------------
-clean:
+.PHONY: clean clean-linux clean-windows
+
+clean: clean-$(TARGET_OS)
+
+clean-linux:
+	@echo ">>> cleaning Linux build artifacts"
 	@if [ -d $(SRC_DIR) ]; then \
-	    $(MAKE) -k -C $(SRC_DIR) clean; \
+	    $(MAKE) -k -C $(SRC_DIR) clean 2>/dev/null || true; \
 	    rm -rf $(SRC_DIR)/JavaGUI/lib/LINUX/X64; \
+	    rm -f $(SRC_DIR)/JavaGUI/JTempestSDR.jar; \
 	fi
 	@rm -rf $(HACKRF_GUI_DIR)
+	@rm -f linux
+	@echo "Linux artifacts cleaned"
+
+clean-windows:
+	@echo ">>> cleaning Windows build artifacts"
+	powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "\
+	if (Test-Path '$(WIN_PREFIX)') { \
+	    if (Test-Path '$(WIN_PREFIX)\\JavaGUI\\lib\\WINDOWS\\X86') { \
+	        Remove-Item -Recurse -Force '$(WIN_PREFIX)\\JavaGUI\\lib\\WINDOWS\\X86' -ErrorAction SilentlyContinue; \
+	    } \
+	    if (Test-Path '$(WIN_PREFIX)\\JavaGUI\\JTempestSDR.jar') { \
+	        Remove-Item -Force '$(WIN_PREFIX)\\JavaGUI\\JTempestSDR.jar' -ErrorAction SilentlyContinue; \
+	    } \
+	}; \
+	if (Test-Path 'windows') { Remove-Item -Force 'windows' -ErrorAction SilentlyContinue }; \
+	Write-Host 'Windows artifacts cleaned'"
