@@ -1,0 +1,16 @@
+# --- TempestSDR installer ---
+# dossiers clonés / générés
+TempestSDR/
+HackRF_Transfer-GUI/
+
+# exécutables, archives, images
+*.exe
+*.zip
+*.iso
+
+# caches & logs
+__pycache__/
+*.log
+
+# éditeur / IDE
+.vscode/
