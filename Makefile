@@ -25,10 +25,10 @@ endif
 
 # ---------- versions & URLs (easily bump here) ----------------
 UHD_VER ?= 3.9.4
-HRF_VER ?= 2024.02.1
+HRF_VER ?= 2018.01.1
 
 UHD_URL  = https://files.ettus.com/binaries/uhd_stable/uhd_003.009.004-release/uhd_003.009.004-release_Win32_VS2015.exe
-HRF_URL  = https://github.com/greatscottgadgets/hackrf/releases/download/v$(HRF_VER)/hackrf_windows_$(HRF_VER).zip
+HRF_URL  = https://github.com/greatscottgadgets/hackrf/releases/download/v$(HRF_VER)/hackrf-windows-$(HRF_VER).zip
 
 # ---------- generic vars --------------------------------------
 JOBS      ?= $(shell nproc 2>/dev/null || echo 4)
@@ -130,31 +130,52 @@ windows:
 	Write-Host '>>> Downloading TempestSDR JAR (precompiled)';\
 	Invoke-WebRequest 'https://github.com/martinmarinov/TempestSDR/raw/master/Release/JavaGUI/JTempestSDR.jar' -OutFile $$root\\JavaGUI\\JTempestSDR.jar;\
 	Write-Host '>>> Downloading TempestSDR plugins (Windows X86)';\
-    $$plugins=@('TSdrLibraryNDK.dll','TSDRPlugin_ExtIO.dll','TSDRPlugin_Mirics.dll','TSDRPlugin_RawFile.dll');\
+    $$plugins=@('TSDRLibraryNDK.dll','TSDRPlugin_ExtIO.dll','TSDRPlugin_Mirics.dll','TSDRPlugin_RawFile.dll');\
     foreach($$dll in $$plugins){\
         try { Invoke-WebRequest \"https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/$$dll\" -OutFile \"$$root\\JavaGUI\\lib\\WINDOWS\\X86\\$$dll\" } catch { Write-Host \"Plugin $$dll not found\" }\
     };\
 	Write-Host '>>> Installing UHD 3.9.4 (USRP drivers and tools - FPGA v4 compatible)';\
     $$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe;\
     Start-Process $$uExe -ArgumentList '/S' -Wait;\
-    Write-Host 'Searching for UHD installation path...';\
-    $$uhdPaths = @('C:\\Program Files\\UHD\\bin\\libusb-1.0.dll', 'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll');\
+    Write-Host 'Searching for UHD installation and libusb-1.0.dll...';\
+    $$uhdPaths = @(\
+        'C:\\Program Files\\UHD\\bin\\libusb-1.0.dll',\
+        'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll',\
+        'C:\\Program Files\\UHD\\lib\\libusb-1.0.dll',\
+        'C:\\Program Files (x86)\\UHD\\lib\\libusb-1.0.dll'\
+    );\
     $$uhdFound = $$false;\
     foreach($$path in $$uhdPaths) {\
         if(Test-Path $$path) {\
             Copy-Item $$path -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-            Write-Host \"Found UHD at: $$path\";\
+            Write-Host \"Found UHD libusb at: $$path\";\
             $$uhdFound = $$true;\
             break;\
         }\
     };\
-    if(-not $$uhdFound) { Write-Host 'Warning: libusb-1.0.dll not found in standard UHD locations' };\
+    if(-not $$uhdFound) { \
+        Write-Host 'UHD libusb-1.0.dll not found, trying to download standalone version...';\
+        try {\
+            Invoke-WebRequest 'https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26-binaries.7z' -OutFile $$env:TEMP\\libusb.7z;\
+            Write-Host 'Downloaded standalone libusb (extract manually if needed)';\
+        } catch { Write-Host 'Warning: Could not find or download libusb-1.0.dll' }\
+    };\
 	Write-Host '>>> Installing HackRF (drivers and tools)';\
 	$$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
 	Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
-	Copy-Item $$env:TEMP\\hr\\*libhackrf.dll -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+	$$hrFiles = Get-ChildItem -Path $$env:TEMP\\hr -Recurse -Name '*hackrf*.dll';\
+	foreach($$file in $$hrFiles) {\
+		$$fullPath = Join-Path $$env:TEMP\\hr $$file;\
+		Copy-Item $$fullPath -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+		Write-Host \"Copied: $$file\";\
+	};\
 	New-Item -ItemType Directory -Force -Path $$root\\tools | Out-Null;\
-	Copy-Item $$env:TEMP\\hr\\hackrf_*.exe -Dest $$root\\tools -Force;\
+	$$hrExes = Get-ChildItem -Path $$env:TEMP\\hr -Recurse -Name 'hackrf*.exe';\
+	foreach($$exe in $$hrExes) {\
+		$$fullPath = Join-Path $$env:TEMP\\hr $$exe;\
+		Copy-Item $$fullPath -Dest $$root\\tools -Force;\
+		Write-Host \"Copied tool: $$exe\";\
+	};\
 	Write-Host '>>> Downloading ExtIO drivers';\
 	try { Invoke-WebRequest 'https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll' -OutFile $$root\\ExtIO\\ExtIO_HackRF.dll } catch { Write-Host 'ExtIO_HackRF.dll download failed' };\
 	Write-Host 'Downloading ExtIO package (USRP + others)';\
