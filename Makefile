@@ -30,10 +30,6 @@ HRF_VER ?= 2024.02.1
 UHD_URL  = https://files.ettus.com/binaries/uhd_$(UHD_VER)-release_x86.exe
 HRF_URL  = https://github.com/greatscottgadgets/hackrf/releases/download/v$(HRF_VER)/hackrf_windows_$(HRF_VER).zip
 
-# ---------- SHA-256 (optional – leave empty to disable check)
-UHD_SHA  ?=
-HRF_SHA  ?=
-
 # ---------- generic vars --------------------------------------
 JOBS      ?= $(shell nproc 2>/dev/null || echo 4)
 ROOT_DIR   = $(CURDIR)
@@ -112,17 +108,15 @@ windows:
 	@echo ">>> Windows automated install (PowerShell)"
 	powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "\
 	$$ErrorActionPreference='Stop';\
-	Function Verify-SHA { param([string]$$f,[string]$$e); if(-not $$e){return};\
-	    $$h=(Get-FileHash -Algo SHA256 $$f).Hash.ToLower(); if($$h -ne $$e.ToLower()){Throw 'SHA mismatch'}};\
 	if(-not(Get-Command choco -EA SilentlyContinue)){iex ((New-Object Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))};\
 	choco upgrade -y git cmake python temurin17jre vcredist140;\
 	$$root='$(WIN_PREFIX)'; if(-not(Test-Path $$root)){git clone --depth 1 https://github.com/martinmarinov/TempestSDR.git $$root};\
 	New-Item -ItemType Directory -Force -Path $$root\\JavaGUI\\lib\\WINDOWS\\X86 | Out-Null;\
 	if(Test-Path $$root\\Release\\WIN32\\*.dll){Copy-Item $$root\\Release\\WIN32\\*.dll -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force};\
-	$$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe; Verify-SHA $$uExe '$(UHD_SHA)';\
+	$$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe;\
 	Start-Process $$uExe -ArgumentList '/S' -Wait;\
 	Copy-Item 'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll' -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-	$$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z; Verify-SHA $$z '$(HRF_SHA)';\
+	$$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
 	Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
 	Copy-Item $$env:TEMP\\hr\\*libhackrf.dll -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
 	Copy-Item $$env:TEMP\\hr\\hackrf_transfer.exe -Dest $$root -Force;\
