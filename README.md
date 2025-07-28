@@ -157,6 +157,8 @@ If no image appears:
 * Reduce low-pass filter bandwidth
 * Check for activity on screen (checkerboard + terminal works best)
 * Try getting closer to the cable (1–2 meters recommended with directional antenna)
+* **Antenna positioning**: If using a directional antenna, aim towards the cable ends (computer or monitor side) for better signal reception
+* **For well-shielded cables**: Get as close as possible, even touching the cable, especially with newer/better shielded cables
 
 ---
 
