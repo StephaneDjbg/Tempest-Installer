@@ -46,6 +46,29 @@ Ensure you have:
 
 **Note for Linux users**: The automated setup is primarily tested on Ubuntu Desktop and Raspberry Pi OS. If you're using a different Linux distribution or architecture, you may encounter compilation issues due to missing dependencies or incompatible package versions. In such cases, manual installation of dependencies and building from source may be required.
 
+**Note for Windows users**: If the automated Makefile installation hangs or stalls, press Enter in the terminal to continue. For more reliable installation, consider manual setup instead of relying on the Makefile automation.
+
+### Manual Windows Installation (Recommended)
+
+Based on the Makefile requirements, you'll need to install the following components manually:
+
+**Required Software:**
+- Git
+- CMake
+- Python 3
+- Visual C++ Redistributables (2008 & 2015+)
+- Java 8 JRE (32-bit) - required for TempestSDR
+- Zadig (for USB drivers)
+
+**SDR Drivers & Tools:**
+- UHD 3.9.4 (for USRP support) - includes libusb-1.0.dll
+- HackRF drivers and tools (hackrf_info, etc.)
+
+**TempestSDR Components:**
+- JTempestSDR.jar (main application)
+- Native DLLs: TSDRLibraryNDK.dll, TSDRPlugin_ExtIO.dll, TSDRPlugin_Mirics.dll, TSDRPlugin_RawFile.dll
+- ExtIO drivers: ExtIO_HackRF.dll, ExtIO_USRP.dll
+
 Add screenshots here:
 
 * `captures/windows_installation.jpg`
