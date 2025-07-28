@@ -28,7 +28,7 @@ UHD_VER ?= 3.9.4
 HRF_VER ?= 2024.02.1
 
 UHD_URL  = https://files.ettus.com/binaries/uhd_stable/uhd_003.009.004-release/uhd_003.009.004-release_Win32_VS2015.exe
-HRF_URL  = https://github.com/greatscottgadgets/hackrf/releases/download/v$(HRF_VER)/hackrf_windows_$(HRF_VER).zip
+HRF_URL  = https://github.com/greatscottgadgets/hackrf/releases/download/v$(HRF_VER)/hackrf-$(HRF_VER).zip
 
 # ---------- generic vars --------------------------------------
 JOBS      ?= $(shell nproc 2>/dev/null || echo 4)
