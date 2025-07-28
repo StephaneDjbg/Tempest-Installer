@@ -69,6 +69,43 @@ Based on the Makefile requirements, you'll need to install the following compone
 - Native DLLs: TSDRLibraryNDK.dll, TSDRPlugin_ExtIO.dll, TSDRPlugin_Mirics.dll, TSDRPlugin_RawFile.dll
 - ExtIO drivers: ExtIO_HackRF.dll, ExtIO_USRP.dll
 
+### Testing SDR Hardware Connection
+
+After installation, verify your SDR is properly recognized:
+
+**Check USB connection:**
+```bash
+# Linux
+lsusb
+
+# Windows (PowerShell)
+Get-PnpDevice -Class USB
+```
+
+**Test HackRF:**
+```bash
+hackrf_info
+```
+
+**Test USRP:**
+```bash
+uhd_find_devices
+# Download USRP firmware images (if needed)
+uhd_images_downloader
+```
+
+### Launching TempestSDR
+
+Once hardware is confirmed working, launch TempestSDR using the 32-bit Java runtime:
+
+```bash
+# Linux
+java -jar /path/to/TempestSDR/JavaGUI/JTempestSDR.jar
+
+# Windows
+"C:\Program Files (x86)\Eclipse Adoptium\jre-8.0.xxx-hotspot\bin\java.exe" -jar JTempestSDR.jar
+```
+
 Add screenshots here:
 
 * `captures/windows_installation.jpg`
