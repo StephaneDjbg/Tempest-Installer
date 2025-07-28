@@ -135,9 +135,20 @@ windows:
         try { Invoke-WebRequest \"https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/$$dll\" -OutFile \"$$root\\JavaGUI\\lib\\WINDOWS\\X86\\$$dll\" } catch { Write-Host \"Plugin $$dll not found\" }\
     };\
 	Write-Host '>>> Installing UHD 3.9.4 (USRP drivers and tools - FPGA v4 compatible)';\
-	$$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe;\
-	Start-Process $$uExe -ArgumentList '/S' -Wait;\
-	Copy-Item 'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll' -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+    $$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe;\
+    Start-Process $$uExe -ArgumentList '/S' -Wait;\
+    Write-Host 'Searching for UHD installation path...';\
+    $$uhdPaths = @('C:\\Program Files\\UHD\\bin\\libusb-1.0.dll', 'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll');\
+    $$uhdFound = $$false;\
+    foreach($$path in $$uhdPaths) {\
+        if(Test-Path $$path) {\
+            Copy-Item $$path -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+            Write-Host \"Found UHD at: $$path\";\
+            $$uhdFound = $$true;\
+            break;\
+        }\
+    };\
+    if(-not $$uhdFound) { Write-Host 'Warning: libusb-1.0.dll not found in standard UHD locations' };\
 	Write-Host '>>> Installing HackRF (drivers and tools)';\
 	$$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
 	Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
@@ -156,14 +167,14 @@ windows:
 		Write-Host 'ExtIO_USRP.dll extracted successfully'\
 	} catch { Write-Host 'ExtIO package download/extraction failed' };\
 	Write-Host '>>> Adding tools to system PATH';\
-	$$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');\
-	$$uhdPath = 'C:\\Program Files (x86)\\UHD\\bin';\
-	$$hackrfPath = $$root + '\\tools';\
-	$$extioPath = $$root + '\\ExtIO';\
-	if($$currentPath -notlike \"*$$uhdPath*\"){\
-		[Environment]::SetEnvironmentVariable('PATH', $$currentPath + ';' + $$uhdPath, 'User');\
-		$$env:PATH += ';' + $$uhdPath;\
-	};\
+    $$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');\
+    $$uhdPath = if(Test-Path 'C:\\Program Files\\UHD\\bin') { 'C:\\Program Files\\UHD\\bin' } else { 'C:\\Program Files (x86)\\UHD\\bin' };\
+    $$hackrfPath = $$root + '\\tools';\
+    $$extioPath = $$root + '\\ExtIO';\
+    if($$currentPath -notlike \"*$$uhdPath*\"){\
+        [Environment]::SetEnvironmentVariable('PATH', $$currentPath + ';' + $$uhdPath, 'User');\
+        $$env:PATH += ';' + $$uhdPath;\
+    };\
 	if($$currentPath -notlike \"*$$hackrfPath*\"){\
 		[Environment]::SetEnvironmentVariable('PATH', [Environment]::GetEnvironmentVariable('PATH', 'User') + ';' + $$hackrfPath, 'User');\
 		$$env:PATH += ';' + $$hackrfPath;\
