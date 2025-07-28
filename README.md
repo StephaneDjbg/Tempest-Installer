@@ -59,6 +59,7 @@ Based on the Makefile requirements, you'll need to install the following compone
 - Visual C++ Redistributables (2008 & 2015+)
 - Java 8 JRE (32-bit) - required for TempestSDR
 - Zadig (for USB drivers)
+- Dependencies GUI (for DLL troubleshooting)
 
 **SDR Drivers & Tools:**
 - UHD 3.9.4 (for USRP support) - includes libusb-1.0.dll
@@ -68,6 +69,8 @@ Based on the Makefile requirements, you'll need to install the following compone
 - JTempestSDR.jar (main application)
 - Native DLLs: TSDRLibraryNDK.dll, TSDRPlugin_ExtIO.dll, TSDRPlugin_Mirics.dll, TSDRPlugin_RawFile.dll
 - ExtIO drivers: ExtIO_HackRF.dll, ExtIO_USRP.dll
+
+**Note**: After installation, restart PowerShell to refresh environment variables. If TempestSDR fails to load with DLL errors, use Dependencies GUI to verify plugins are 32-bit (should show "i386" in Machine field). Missing DLLs (shown in red) can be downloaded from https://fr.dll-files.com/ and placed in the same folder as the JAR/bugged ExtIO DLL or in SysWOW64.
 
 ### Testing SDR Hardware Connection
 
@@ -181,6 +184,8 @@ Images:
 | Image is black        | Reduce lowpass filter cutoff, check screen state |
 | Raspberry Pi too slow | Lower sample rate to 8 Msps                      |
 | Desync or flickering  | Adjust sync timing in TempestSDR manually        |
+| Windows: PATH not updated after install | Restart PowerShell/Command Prompt to refresh environment variables |
+| Windows: DLL loading errors | Use Dependencies GUI to verify plugins are 32-bit (should show "i386" in Machine field). If DLLs appear in red (missing), download from https://fr.dll-files.com/ and place in same folder as JAR or in SysWOW64 |
 
 ---
 
