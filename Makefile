@@ -108,24 +108,90 @@ windows:
 	@echo ">>> Windows automated install (PowerShell)"
 	powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "\
 	$$ErrorActionPreference='Stop';\
-	if(-not(Get-Command choco -EA SilentlyContinue)){iex ((New-Object Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))};\
-	choco upgrade -y git cmake python temurin17jre vcredist140;\
-	$$root='$(WIN_PREFIX)'; if(-not(Test-Path $$root)){git clone --depth 1 https://github.com/martinmarinov/TempestSDR.git $$root};\
+	Write-Host '>>> Installing Chocolatey (if needed)';\
+	if(-not(Get-Command choco -EA SilentlyContinue)){\
+		[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;\
+		iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));\
+		$$env:PATH = [Environment]::GetEnvironmentVariable('PATH','Machine') + ';' + [Environment]::GetEnvironmentVariable('PATH','User');\
+	};\
+	if(-not(Get-Command choco -EA SilentlyContinue)){\
+		$$env:PATH += ';C:\\ProgramData\\chocolatey\\bin';\
+	};\
+	Write-Host '>>> Installing base packages';\
+	choco upgrade -y git cmake python vcredist140 vcredist2008;\
+	Write-Host '>>> Installing Java 32-bit (required for TempestSDR)';\
+	choco upgrade -y temurin8jre --x86;\
+	Write-Host '>>> Installing Zadig (USB drivers)';\
+	choco upgrade -y zadig;\
+	Write-Host '>>> Creating TempestSDR directory';\
+	$$root='$(WIN_PREFIX)'; New-Item -ItemType Directory -Force -Path $$root\\JavaGUI | Out-Null;\
 	New-Item -ItemType Directory -Force -Path $$root\\JavaGUI\\lib\\WINDOWS\\X86 | Out-Null;\
-	if(Test-Path $$root\\Release\\WIN32\\*.dll){Copy-Item $$root\\Release\\WIN32\\*.dll -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force};\
+	New-Item -ItemType Directory -Force -Path $$root\\ExtIO | Out-Null;\
+	Write-Host '>>> Downloading TempestSDR JAR (precompiled)';\
+	Invoke-WebRequest 'https://github.com/martinmarinov/TempestSDR/raw/master/Release/JavaGUI/JTempestSDR.jar' -OutFile $$root\\JavaGUI\\JTempestSDR.jar;\
+	Write-Host '>>> Downloading TempestSDR plugins (Windows X86)';\
+    $$plugins=@('TSdrLibraryNDK.dll','TSDRPlugin_ExtIO.dll','TSDRPlugin_Mirics.dll','TSDRPlugin_RawFile.dll');\
+    foreach($$dll in $$plugins){\
+        try { Invoke-WebRequest \"https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/$$dll\" -OutFile \"$$root\\JavaGUI\\lib\\WINDOWS\\X86\\$$dll\" } catch { Write-Host \"Plugin $$dll not found\" }\
+    };\
+	Write-Host '>>> Installing UHD 3.9.4 (USRP drivers and tools - FPGA v4 compatible)';\
 	$$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe;\
 	Start-Process $$uExe -ArgumentList '/S' -Wait;\
 	Copy-Item 'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll' -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+	Write-Host '>>> Installing HackRF (drivers and tools)';\
 	$$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
 	Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
 	Copy-Item $$env:TEMP\\hr\\*libhackrf.dll -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-	Copy-Item $$env:TEMP\\hr\\hackrf_transfer.exe -Dest $$root -Force;\
-	Write-Host '--- INSTALL COMPLETE ---';\
-	Write-Host 'Launch TempestSDR with:';\
-	Write-Host '  \"C:\\Program Files (x86)\\Java\\jre-17\\bin\\java\" -jar '+$$root+'\\JavaGUI\\JTempestSDR.jar';\
+	New-Item -ItemType Directory -Force -Path $$root\\tools | Out-Null;\
+	Copy-Item $$env:TEMP\\hr\\hackrf_*.exe -Dest $$root\\tools -Force;\
+	Write-Host '>>> Downloading ExtIO drivers';\
+	try { Invoke-WebRequest 'https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll' -OutFile $$root\\ExtIO\\ExtIO_HackRF.dll } catch { Write-Host 'ExtIO_HackRF.dll download failed' };\
+	Write-Host 'Downloading ExtIO package (USRP + others)';\
+	try {\
+		$$extioZip=$$env:TEMP+'\\extio_package.zip';\
+		Invoke-WebRequest 'http://spench.net/drupal/files/ExtIO_USRP+FCD+RTL2832U+BorIP_Setup.zip' -OutFile $$extioZip;\
+		Expand-Archive $$extioZip -Dest $$env:TEMP\\extio_temp -Force;\
+		if(Test-Path $$env:TEMP\\extio_temp\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
+		if(Test-Path $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
+		Write-Host 'ExtIO_USRP.dll extracted successfully'\
+	} catch { Write-Host 'ExtIO package download/extraction failed' };\
+	Write-Host '>>> Adding tools to system PATH';\
+	$$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');\
+	$$uhdPath = 'C:\\Program Files (x86)\\UHD\\bin';\
+	$$hackrfPath = $$root + '\\tools';\
+	$$extioPath = $$root + '\\ExtIO';\
+	if($$currentPath -notlike \"*$$uhdPath*\"){\
+		[Environment]::SetEnvironmentVariable('PATH', $$currentPath + ';' + $$uhdPath, 'User');\
+		$$env:PATH += ';' + $$uhdPath;\
+	};\
+	if($$currentPath -notlike \"*$$hackrfPath*\"){\
+		[Environment]::SetEnvironmentVariable('PATH', [Environment]::GetEnvironmentVariable('PATH', 'User') + ';' + $$hackrfPath, 'User');\
+		$$env:PATH += ';' + $$hackrfPath;\
+	};\
+	if($$currentPath -notlike \"*$$extioPath*\"){\
+		[Environment]::SetEnvironmentVariable('PATH', [Environment]::GetEnvironmentVariable('PATH', 'User') + ';' + $$extioPath, 'User');\
+		$$env:PATH += ';' + $$extioPath;\
+	};\
+	Write-Host '';\
+	Write-Host '=== INSTALLATION COMPLETE ===';\
+	Write-Host '';\
+	Write-Host 'STEP 1: Install USB drivers';\
+	Write-Host '  Run Zadig and install drivers for HackRF/USRP';\
+	Write-Host '';\
+	Write-Host 'STEP 2: Test your devices';\
+	Write-Host '  UHD/USRP : uhd_find_devices';\
+	Write-Host '  HackRF   : hackrf_info';\
+	Write-Host '';\
+	Write-Host 'STEP 3: Launch TempestSDR';\
+	Write-Host '  \"C:\\Program Files (x86)\\Java\\jre1.8.0_XXX\\bin\\java\" -jar $$root\\JavaGUI\\JTempestSDR.jar';\
+	Write-Host '';\
+	Write-Host 'ExtIO files available in: $$root\\ExtIO\\';\
+	Write-Host 'TempestSDR will auto-load ExtIO_HackRF.dll and ExtIO_USRP.dll';\
+	Write-Host '';\
+	Write-Host 'NOTE: UHD 3.9.4 installed for FPGA v4 compatibility with ExtIO_USRP';\
+	Write-Host 'NOTE: Restart terminal to use new PATH variables';\
 	"
 	@echo windows > windows
-	@touch $@
 
 # --------------------------------------------------------------
 # CLEAN
