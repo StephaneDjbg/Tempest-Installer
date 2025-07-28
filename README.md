@@ -71,7 +71,13 @@ You'll need to install the following components manually:
 - ExtIO drivers: [ExtIO_HackRF.dll](https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll), [ExtIO_USRP.dll](http://spench.net/drupal/files/ExtIO_USRP+FCD+RTL2832U+BorIP_Setup.zip) (from ExtIO package)
 - Or build from source: [TempestSDR GitHub](https://github.com/martinmarinov/TempestSDR)
 
-**Note**: After installation, restart PowerShell to refresh environment variables. If TempestSDR fails to load with DLL errors, use Dependencies GUI to verify plugins are 32-bit (should show "i386" in Machine field). Missing DLLs (shown in red) can be downloaded from https://fr.dll-files.com/ and placed in the same folder as the JAR or in SysWOW64.
+**File Organization:**
+Create a folder (e.g., `TempestSDR`) and place:
+- `JTempestSDR.jar` and `TSDRPlugin_*.dll` files in the main folder
+- ExtIO drivers (`ExtIO_*.dll`) in a subfolder called `extio`
+- Use Dependencies GUI to check for missing DLLs and place them accordingly
+
+**Note**: After installation, restart PowerShell to refresh environment variables. If TempestSDR fails to load with DLL errors, use Dependencies GUI to verify plugins are 32-bit (should show "i386" in Machine field). Missing DLLs (shown in red) can be downloaded from https://fr.dll-files.com/ and placed in the same folder as the JAR or in `C:\Windows\SysWOW64`.
 
 ### Testing SDR Hardware Connection
 
