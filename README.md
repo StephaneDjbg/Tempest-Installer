@@ -44,6 +44,8 @@ Ensure you have:
 * Zadig installed (Windows, for HackRF)
 * UHD driver installed (for USRP)
 
+**Note for Linux users**: The automated setup is primarily tested on Ubuntu Desktop and Raspberry Pi OS. If you're using a different Linux distribution or architecture, you may encounter compilation issues due to missing dependencies or incompatible package versions. In such cases, manual installation of dependencies and building from source may be required.
+
 Add screenshots here:
 
 * `captures/windows_installation.jpg`
