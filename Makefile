@@ -24,7 +24,7 @@ else
 endif
 
 # ---------- versions & URLs (easily bump here) ----------------
-UHD_VER ?= 3.9.4              # FPGA images v4 compatible with ExtIO
+UHD_VER ?= 3.9.4
 HRF_VER ?= 2024.02.1
 
 UHD_URL  = https://files.ettus.com/binaries/uhd_$(UHD_VER)-release_x86.exe
@@ -111,30 +111,26 @@ linux:
 windows:
 	@echo ">>> Windows automated install (PowerShell)"
 	powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "\
-	$ErrorActionPreference='Stop';\
-	Function Verify-SHA { param([string]\$f,[string]\$e); if(-not \$e){return};\
-	    \$h=(Get-FileHash -Algo SHA256 \$f).Hash.ToLower(); if(\$h -ne \$e.ToLower()){Throw 'SHA mismatch'}};\
-	# 1. choco \
-	if(-not(Get-Command choco -EA SilentlyContinue)){iex ((New-Object Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));};\
+	$$ErrorActionPreference='Stop';\
+	Function Verify-SHA { param([string]$$f,[string]$$e); if(-not $$e){return};\
+	    $$h=(Get-FileHash -Algo SHA256 $$f).Hash.ToLower(); if($$h -ne $$e.ToLower()){Throw 'SHA mismatch'}};\
+	if(-not(Get-Command choco -EA SilentlyContinue)){iex ((New-Object Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))};\
 	choco upgrade -y git cmake python temurin17jre vcredist140;\
-	# 2. TempestSDR source \
-	\$root='$(WIN_PREFIX)'; if(-not(Test-Path \$root)){git clone --depth 1 https://github.com/martinmarinov/TempestSDR.git \$root};\
-	New-Item -ItemType Directory -Force -Path \$root\\JavaGUI\\lib\\WINDOWS\\X86 | Out-Null;\
-	Copy-Item \$root\\Release\\WIN32\\*.dll -Dest \$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-	# 3. UHD 3.9.4 + SHA \
-	\$uExe=\$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile \$uExe; Verify-SHA \$uExe '$(UHD_SHA)';\
-	Start-Process \$uExe -ArgumentList '/S' -Wait;\
-	Copy-Item 'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll' -Dest \$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-	# 4. HackRF zip + SHA \
-	\$z=\$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile \$z; Verify-SHA \$z '$(HRF_SHA)';\
-	Expand-Archive \$z -Dest \$env:TEMP\\hr -Force;\
-	Copy-Item \$env:TEMP\\hr\\*libhackrf.dll -Dest \$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-	Copy-Item \$env:TEMP\\hr\\hackrf_transfer.exe -Dest \$root -Force;\
-	# 5. Done \
+	$$root='$(WIN_PREFIX)'; if(-not(Test-Path $$root)){git clone --depth 1 https://github.com/martinmarinov/TempestSDR.git $$root};\
+	New-Item -ItemType Directory -Force -Path $$root\\JavaGUI\\lib\\WINDOWS\\X86 | Out-Null;\
+	if(Test-Path $$root\\Release\\WIN32\\*.dll){Copy-Item $$root\\Release\\WIN32\\*.dll -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force};\
+	$$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe; Verify-SHA $$uExe '$(UHD_SHA)';\
+	Start-Process $$uExe -ArgumentList '/S' -Wait;\
+	Copy-Item 'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll' -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+	$$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z; Verify-SHA $$z '$(HRF_SHA)';\
+	Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
+	Copy-Item $$env:TEMP\\hr\\*libhackrf.dll -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+	Copy-Item $$env:TEMP\\hr\\hackrf_transfer.exe -Dest $$root -Force;\
 	Write-Host '--- INSTALL COMPLETE ---';\
 	Write-Host 'Launch TempestSDR with:';\
-	Write-Host '  \"C:\\Program Files (x86)\\Java\\jre-17\\bin\\java\" -jar '+\$root+'\\JavaGUI\\JTempestSDR.jar';\
-	"; \
+	Write-Host '  \"C:\\Program Files (x86)\\Java\\jre-17\\bin\\java\" -jar '+$$root+'\\JavaGUI\\JTempestSDR.jar';\
+	"
+	@echo windows > windows
 	@touch $@
 
 # --------------------------------------------------------------
