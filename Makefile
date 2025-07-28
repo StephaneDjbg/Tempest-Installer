@@ -197,24 +197,27 @@ windows:
 	Write-Host '>>> Installing HackRF (drivers and tools)';\
     if(-not(Test-Path $$env:TEMP\\hr\\hackrf_info.exe)) {\
         Write-Host 'Downloading HackRF tools...';\
-        $$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
-        Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
+        $$z=$$env:TEMP+'\\hackrf.zip';\
+        try {\
+            Remove-Item $$z -Force -ErrorAction SilentlyContinue;\
+            Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
+            if((Get-Item $$z).Length -lt 1000) {\
+                throw 'Downloaded file too small';\
+            };\
+            Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
+        } catch {\
+            Write-Host 'HackRF download failed, trying alternative URL...';\
+            try {\
+                Remove-Item $$z -Force -ErrorAction SilentlyContinue;\
+                Invoke-WebRequest 'https://github.com/greatscottgadgets/hackrf/releases/download/v$(HRF_VER)/hackrf-$(HRF_VER).zip' -OutFile $$z;\
+                Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
+            } catch {\
+                Write-Host 'Both HackRF URLs failed. Please download manually from GitHub releases.';\
+            }\
+        };\
     } else {\
         Write-Host 'HackRF tools already downloaded, skipping...';\
     };\
-    $$hrFiles = Get-ChildItem -Path $$env:TEMP\\hr -Recurse -Name '*hackrf*.dll';\
-    foreach($$file in $$hrFiles) {\
-        $$fullPath = Join-Path $$env:TEMP\\hr $$file;\
-        Copy-Item $$fullPath -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-        Write-Host \"Copied: $$file\";\
-    };\
-	New-Item -ItemType Directory -Force -Path $$root\\tools | Out-Null;\
-	$$hrExes = Get-ChildItem -Path $$env:TEMP\\hr -Recurse -Name 'hackrf*.exe';\
-	foreach($$exe in $$hrExes) {\
-		$$fullPath = Join-Path $$env:TEMP\\hr $$exe;\
-		Copy-Item $$fullPath -Dest $$root\\tools -Force;\
-		Write-Host \"Copied tool: $$exe\";\
-	};\
 	Write-Host '>>> Downloading ExtIO drivers';\
     if(-not(Test-Path $$root\\ExtIO\\ExtIO_HackRF.dll)) {\
         try {\
