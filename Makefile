@@ -69,10 +69,12 @@ linux:
 
 	@echo ">>> clone / update TempestSDR to $(SRC_DIR)"
 	@if [ ! -d $(SRC_DIR) ]; then \
-	     git clone --recursive https://github.com/martinmarinov/TempestSDR.git $(SRC_DIR); \
-	else \
-	     cd $(SRC_DIR) && git pull && git submodule update --init --recursive; \
-	fi
+         echo "Cloning TempestSDR repository..."; \
+         git clone --recursive https://github.com/martinmarinov/TempestSDR.git $(SRC_DIR); \
+    else \
+         echo "TempestSDR already exists, updating..."; \
+         cd $(SRC_DIR) && git pull && git submodule update --init --recursive; \
+    fi
 
 	@echo ">>> configure JAVA_HOME"
 	@export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
@@ -89,10 +91,12 @@ linux:
 
 	@echo ">>> clone / update HackRF_Transfer-GUI"
 	@if [ ! -d $(HACKRF_GUI_DIR) ]; then \
-	     git clone --depth 1 $(HACKRF_GUI_REPO) $(HACKRF_GUI_DIR); \
-	else \
-	     cd $(HACKRF_GUI_DIR) && git pull; \
-	fi
+         echo "Cloning HackRF_Transfer-GUI repository..."; \
+         git clone --depth 1 $(HACKRF_GUI_REPO) $(HACKRF_GUI_DIR); \
+    else \
+         echo "HackRF_Transfer-GUI already exists, updating..."; \
+         cd $(HACKRF_GUI_DIR) && git pull; \
+    fi
 
 	@echo; echo "=== INSTALL COMPLETE ==="
 	@echo "TempestSDR  : java -jar $(SRC_DIR)/JavaGUI/JTempestSDR.jar"
@@ -143,11 +147,26 @@ windows:
 	New-Item -ItemType Directory -Force -Path $$root\\JavaGUI\\lib\\WINDOWS\\X86 | Out-Null;\
 	New-Item -ItemType Directory -Force -Path $$root\\ExtIO | Out-Null;\
 	Write-Host '>>> Downloading TempestSDR JAR (precompiled)';\
-	Invoke-WebRequest 'https://github.com/martinmarinov/TempestSDR/raw/master/Release/JavaGUI/JTempestSDR.jar' -OutFile $$root\\JavaGUI\\JTempestSDR.jar;\
+	if(-not(Test-Path $$root\\JavaGUI\\JTempestSDR.jar)) {\
+		Write-Host 'Downloading JTempestSDR.jar...';\
+		Invoke-WebRequest 'https://github.com/martinmarinov/TempestSDR/raw/master/Release/JavaGUI/JTempestSDR.jar' -OutFile $$root\\JavaGUI\\JTempestSDR.jar;\
+	} else {\
+		Write-Host 'JTempestSDR.jar already exists, skipping download';\
+	};\
 	Write-Host '>>> Downloading TempestSDR plugins (Windows X86)';\
     $$plugins=@('TSDRLibraryNDK.dll','TSDRPlugin_ExtIO.dll','TSDRPlugin_Mirics.dll','TSDRPlugin_RawFile.dll');\
     foreach($$dll in $$plugins){\
-        try { Invoke-WebRequest \"https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/$$dll\" -OutFile \"$$root\\JavaGUI\\lib\\WINDOWS\\X86\\$$dll\" } catch { Write-Host \"Plugin $$dll not found\" }\
+        $$dllPath = \"$$root\\JavaGUI\\lib\\WINDOWS\\X86\\$$dll\";\
+        if(-not(Test-Path $$dllPath)) {\
+            try {\
+                Write-Host \"Downloading $$dll...\";\
+                Invoke-WebRequest \"https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/$$dll\" -OutFile $$dllPath;\
+            } catch {\
+                Write-Host \"Plugin $$dll not found\";\
+            }\
+        } else {\
+            Write-Host \"$$dll already exists, skipping download\";\
+        }\
     };\
 	Write-Host '>>> Installing UHD 3.9.4 (USRP drivers and tools - FPGA v4 compatible)';\
     $$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe;\
@@ -176,14 +195,19 @@ windows:
         } catch { Write-Host 'Warning: Could not find or download libusb-1.0.dll' }\
     };\
 	Write-Host '>>> Installing HackRF (drivers and tools)';\
-	$$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
-	Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
-	$$hrFiles = Get-ChildItem -Path $$env:TEMP\\hr -Recurse -Name '*hackrf*.dll';\
-	foreach($$file in $$hrFiles) {\
-		$$fullPath = Join-Path $$env:TEMP\\hr $$file;\
-		Copy-Item $$fullPath -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-		Write-Host \"Copied: $$file\";\
-	};\
+    if(-not(Test-Path $$env:TEMP\\hr\\hackrf_info.exe)) {\
+        Write-Host 'Downloading HackRF tools...';\
+        $$z=$$env:TEMP+'\\hackrf.zip'; Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
+        Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
+    } else {\
+        Write-Host 'HackRF tools already downloaded, skipping...';\
+    };\
+    $$hrFiles = Get-ChildItem -Path $$env:TEMP\\hr -Recurse -Name '*hackrf*.dll';\
+    foreach($$file in $$hrFiles) {\
+        $$fullPath = Join-Path $$env:TEMP\\hr $$file;\
+        Copy-Item $$fullPath -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
+        Write-Host \"Copied: $$file\";\
+    };\
 	New-Item -ItemType Directory -Force -Path $$root\\tools | Out-Null;\
 	$$hrExes = Get-ChildItem -Path $$env:TEMP\\hr -Recurse -Name 'hackrf*.exe';\
 	foreach($$exe in $$hrExes) {\
@@ -192,16 +216,27 @@ windows:
 		Write-Host \"Copied tool: $$exe\";\
 	};\
 	Write-Host '>>> Downloading ExtIO drivers';\
-	try { Invoke-WebRequest 'https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll' -OutFile $$root\\ExtIO\\ExtIO_HackRF.dll } catch { Write-Host 'ExtIO_HackRF.dll download failed' };\
-	Write-Host 'Downloading ExtIO package (USRP + others)';\
-	try {\
-		$$extioZip=$$env:TEMP+'\\extio_package.zip';\
-		Invoke-WebRequest 'http://spench.net/drupal/files/ExtIO_USRP+FCD+RTL2832U+BorIP_Setup.zip' -OutFile $$extioZip;\
-		Expand-Archive $$extioZip -Dest $$env:TEMP\\extio_temp -Force;\
-		if(Test-Path $$env:TEMP\\extio_temp\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
-		if(Test-Path $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
-		Write-Host 'ExtIO_USRP.dll extracted successfully'\
-	} catch { Write-Host 'ExtIO package download/extraction failed' };\
+    if(-not(Test-Path $$root\\ExtIO\\ExtIO_HackRF.dll)) {\
+        try {\
+            Write-Host 'Downloading ExtIO_HackRF.dll...';\
+            Invoke-WebRequest 'https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll' -OutFile $$root\\ExtIO\\ExtIO_HackRF.dll;\
+        } catch { Write-Host 'ExtIO_HackRF.dll download failed' };\
+    } else {\
+        Write-Host 'ExtIO_HackRF.dll already exists, skipping download';\
+    };\
+    if(-not(Test-Path $$root\\ExtIO\\ExtIO_USRP.dll)) {\
+        Write-Host 'Downloading ExtIO package (USRP + others)';\
+        try {\
+            $$extioZip=$$env:TEMP+'\\extio_package.zip';\
+            Invoke-WebRequest 'http://spench.net/drupal/files/ExtIO_USRP+FCD+RTL2832U+BorIP_Setup.zip' -OutFile $$extioZip;\
+            Expand-Archive $$extioZip -Dest $$env:TEMP\\extio_temp -Force;\
+            if(Test-Path $$env:TEMP\\extio_temp\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
+            if(Test-Path $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
+            Write-Host 'ExtIO_USRP.dll extracted successfully';\
+        } catch { Write-Host 'ExtIO package download/extraction failed' };\
+    } else {\
+        Write-Host 'ExtIO_USRP.dll already exists, skipping download';\
+    };\
 	Write-Host '>>> Adding tools to system PATH';\
     $$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');\
     $$uhdPath = if(Test-Path 'C:\\Program Files\\UHD\\bin') { 'C:\\Program Files\\UHD\\bin' } else { 'C:\\Program Files (x86)\\UHD\\bin' };\
