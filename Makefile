@@ -154,7 +154,7 @@ windows:
 		Write-Host 'JTempestSDR.jar already exists, skipping download';\
 	};\
 	Write-Host '>>> Downloading TempestSDR plugins (Windows X86)';\
-    $$plugins=@('TSDRLibraryNDK.dll','TSDRPlugin_ExtIO.dll','TSDRPlugin_Mirics.dll','TSDRPlugin_RawFile.dll');\
+    $$plugins=@('TSDRPlugin_RawFile.dll','TSDRPlugin_ExtIO.dll');\
     foreach($$dll in $$plugins){\
         $$dllPath = \"$$root\\JavaGUI\\lib\\WINDOWS\\X86\\$$dll\";\
         if(-not(Test-Path $$dllPath)) {\
