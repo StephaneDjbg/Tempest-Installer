@@ -121,7 +121,22 @@ windows:
 	choco upgrade -y git cmake python vcredist140 vcredist2008;\
 	Write-Host '>>> Installing Java 32-bit (required for TempestSDR)';\
 	choco upgrade -y temurin8jre --x86;\
-	Write-Host '>>> Installing Zadig (USB drivers)';\
+	Write-Host '>>> Adding Java 32-bit to PATH with alias';\
+	$$javaPath = Get-ChildItem 'C:\\Program Files (x86)\\Eclipse Adoptium\\' -Directory | Where-Object {$$_.Name -like 'jre-8*'} | Select-Object -First 1 -ExpandProperty FullName;\
+    if($$javaPath) {\
+        $$javaBinPath = Join-Path $$javaPath 'bin';\
+        $$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');\
+        if($$currentPath -notlike \"*$$javaBinPath*\"){\
+            [Environment]::SetEnvironmentVariable('PATH', $$currentPath + ';' + $$javaBinPath, 'User');\
+            $$env:PATH += ';' + $$javaBinPath;\
+        };\
+        Write-Host \"Java 32-bit added to PATH: $$javaBinPath\";\
+        Copy-Item (Join-Path $$javaBinPath 'java.exe') -Dest (Join-Path $$javaBinPath 'java32.exe') -Force;\
+        Write-Host 'Created java32.exe alias for 32-bit Java';\
+    } else {\
+        Write-Host 'Warning: Could not find Java 32-bit installation path';\
+    };\
+    Write-Host '>>> Installing Zadig (USB drivers)';\
 	choco upgrade -y zadig;\
 	Write-Host '>>> Creating TempestSDR directory';\
 	$$root='$(WIN_PREFIX)'; New-Item -ItemType Directory -Force -Path $$root\\JavaGUI | Out-Null;\
@@ -215,13 +230,15 @@ windows:
 	Write-Host '  HackRF   : hackrf_info';\
 	Write-Host '';\
 	Write-Host 'STEP 3: Launch TempestSDR';\
-	Write-Host '  \"C:\\Program Files (x86)\\Java\\jre1.8.0_XXX\\bin\\java\" -jar $$root\\JavaGUI\\JTempestSDR.jar';\
+	Write-Host '  java32 -jar $$root\\JavaGUI\\JTempestSDR.jar';\
+	Write-Host '  OR: java -jar $$root\\JavaGUI\\JTempestSDR.jar';\
 	Write-Host '';\
 	Write-Host 'ExtIO files available in: $$root\\ExtIO\\';\
 	Write-Host 'TempestSDR will auto-load ExtIO_HackRF.dll and ExtIO_USRP.dll';\
 	Write-Host '';\
 	Write-Host 'NOTE: UHD 3.9.4 installed for FPGA v4 compatibility with ExtIO_USRP';\
 	Write-Host 'NOTE: Restart terminal to use new PATH variables';\
+	Write-Host 'NOTE: Use java32 command for guaranteed 32-bit Java execution';\
 	"
 	@echo windows > windows
 
