@@ -50,34 +50,59 @@ Ensure you have:
 
 ### Manual Windows Installation (Recommended)
 
-You'll need to install the following components manually:
+**⚠️ Important**: Manual installation is strongly recommended for Windows users as the automated Makefile often encounters issues with PATH configuration and driver setup.
+
+You'll need to install the following components manually and follow the setup instructions carefully:
 
 **Required Software:**
-- [Git](https://git-scm.com/download/win)
-- [CMake](https://cmake.org/download/)
-- [Python 3](https://www.python.org/downloads/)
+- [Git](https://git-scm.com/download/win) - Add to PATH during installation
+- [CMake](https://cmake.org/download/) - Add to PATH during installation
+- [Python 3](https://www.python.org/downloads/) - Add to PATH during installation
 - [Visual C++ Redistributables 2008](https://www.microsoft.com/en-us/download/details.aspx?id=29) & [2015+](https://aka.ms/vs/17/release/vc_redist.x86.exe)
 - [Java 8 JRE (32-bit)](https://adoptium.net/temurin/releases/?version=8&arch=x86&package=jre) - required for TempestSDR
 - [Zadig](https://zadig.akeo.ie/) (for USB drivers)
 - [Dependencies GUI](https://github.com/lucasg/Dependencies/releases) (for DLL troubleshooting)
 
 **SDR Drivers & Tools:**
-- [UHD 3.9.4](https://files.ettus.com/binaries/uhd_stable/uhd_003.009.004-release/uhd_003.009.004-release_Win32_VS2015.exe) (for USRP support) - includes libusb-1.0.dll
-- [HackRF drivers and tools](https://github.com/greatscottgadgets/hackrf/releases) (hackrf_info, etc.)
+- [UHD 3.9.4](https://files.ettus.com/binaries/uhd_stable/uhd_003.009.004-release/uhd_003.009.004-release_Win32_VS2015.exe) (for USRP support)
+- [HackRF drivers and tools](https://github.com/greatscottgadgets/hackrf/releases)
+
+**Critical Setup Steps:**
+
+1. **Java Configuration**: Create a PowerShell alias to avoid conflicts with existing Java installations:
+   ```powershell
+   # Add this to your PowerShell profile
+   Set-Alias -Name java32 -Value "C:\Program Files (x86)\Eclipse Adoptium\jre-8.0.xxx-hotspot\bin\java.exe"
+   ```
+
+2. **Zadig Driver Setup**: 
+   - Connect your HackRF/USRP
+   - Launch Zadig
+   - Select your device from the dropdown
+   - Choose **WinUSB** as the driver
+   - Click "Replace Driver"
+
+3. **PATH Verification**: Ensure all tools are accessible by opening a new PowerShell window and testing:
+   ```powershell
+   git --version
+   cmake --version
+   python --version
+   hackrf_info  # Should detect HackRF
+   uhd_find_devices  # Should detect USRP
+   ```
 
 **TempestSDR Components:**
 - Download precompiled [TempestSDR JAR](https://github.com/martinmarinov/TempestSDR/raw/master/Release/JavaGUI/JTempestSDR.jar)
 - Native DLLs: [TSDRPlugin_RawFile.dll](https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/TSDRPlugin_RawFile.dll), [TSDRPlugin_ExtIO.dll](https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/TSDRPlugin_ExtIO.dll)
-- ExtIO drivers: [ExtIO_HackRF.dll](https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll), [ExtIO_USRP.dll](http://spench.net/drupal/files/ExtIO_USRP+FCD+RTL2832U+BorIP_Setup.zip) (from ExtIO package)
-- Or build from source: [TempestSDR GitHub](https://github.com/martinmarinov/TempestSDR)
+- ExtIO drivers: [ExtIO_HackRF.dll](https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll), [ExtIO_USRP.dll](http://spench.net/drupal/files/ExtIO_USRP+FCD+RTL2832U+BorIP_Setup.zip)
 
 **File Organization:**
 Create a folder (e.g., `TempestSDR`) and place:
 - `JTempestSDR.jar` and `TSDRPlugin_*.dll` files in the main folder
 - ExtIO drivers (`ExtIO_*.dll`) in a subfolder called `extio`
-- Use Dependencies GUI to check for missing DLLs and place them accordingly
+- Use Dependencies GUI to verify all DLLs are properly linked
 
-**Note**: After installation, restart PowerShell to refresh environment variables. If TempestSDR fails to load with DLL errors, use Dependencies GUI to verify plugins are 32-bit (should show "i386" in Machine field). Missing DLLs (shown in red) can be downloaded from https://fr.dll-files.com/ and placed in the same folder as the JAR or in `C:\Windows\SysWOW64`.
+**Note**: After installation, restart PowerShell to refresh environment variables. If TempestSDR fails to load with DLL errors, use Dependencies GUI to verify plugins are 32-bit (should show "i386" in Machine field). Missing DLLs can be downloaded from https://fr.dll-files.com/ and placed in the same folder as the JAR or in `C:\Windows\SysWOW64`.
 
 ### Testing SDR Hardware Connection
 
@@ -112,9 +137,26 @@ Once hardware is confirmed working, launch TempestSDR using the 32-bit Java runt
 # Linux
 java -jar /path/to/TempestSDR/JavaGUI/JTempestSDR.jar
 
-# Windows
-"C:\Program Files (x86)\Eclipse Adoptium\jre-8.0.xxx-hotspot\bin\java.exe" -jar JTempestSDR.jar
+# Windows (PowerShell)
+java32 -jar JTempestSDR.jar
+# Or direct path:
+# & "C:\Program Files (x86)\Eclipse Adoptium\jre-8.0.xxx-hotspot\bin\java.exe" -jar JTempestSDR.jar
 ```
+
+#### TempestSDR Interface Overview
+
+<div align="center">
+<img src="C:\Users\steph\OneDrive\Bureau\Stage\TEMPEST\interface.png" alt="TempestSDR Interface" width="600"/>
+</div>
+
+**Key Interface Elements:**
+- **Frequency**: Set the target frequency found with CubicSDR/GQRX
+- **Gain**: Adjust signal amplification (mid-range recommended)
+- **Lpass**: Low-pass filter to reduce noise
+- **Start/Stop**: Begin/end signal capture
+- **Aut**: Auto-correlation for sync detection
+- **Main Display**: Shows captured video signal
+- **Autocorrelation Graph**: Helps with signal synchronization
 
 Add screenshots here:
 
@@ -129,7 +171,7 @@ Add screenshots here:
 
 Use `CubicSDR` or `GQRX` to locate comb-shaped peaks on the spectrum, typical of video signal harmonics.
 
-Example frequency catalog (to be extended):
+Example frequency catalog:
 
 | Cable | Resolution | Framerate | Observed Frequency |
 | ----- | ---------- | --------- | ------------------ |
