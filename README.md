@@ -146,7 +146,7 @@ java32 -jar JTempestSDR.jar
 #### TempestSDR Interface Overview
 
 <div align="center">
-<img src="TEMPEST\interface.png" alt="TempestSDR Interface" width="600"/>
+<img src="TEMPEST/interface.png" alt="TempestSDR Interface" width="600"/>
 </div>
 
 **Key Interface Elements:**
