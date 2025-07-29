@@ -56,6 +56,13 @@ The Makefile will handle:
 
 **Note for Linux users**: The automated setup is primarily tested on Ubuntu Desktop and Raspberry Pi OS. If you're using a different Linux distribution or architecture, you may encounter compilation issues due to missing dependencies or incompatible package versions. In such cases, manual installation of dependencies and building from source may be required.
 
+<div align="center">
+<img src="captures/erreurarchilinux.jpeg" alt="Linux Architecture Error" width="600"/>
+<br/>
+<em>Example architecture error: TempestSDR cannot load 32-bit plugins on a 64-bit Linux distribution (shown here on Arch Linux).</em>
+</div>
+
+
 **Note for Windows users**: If the automated Makefile installation hangs or stalls, press Enter in the terminal to continue. **For more reliable installation, consider manual setup instead of relying on the Makefile automation** - see below for detailed manual Windows installation.
 
 ### Manual Windows Installation (Recommended)
@@ -92,6 +99,12 @@ You'll need to install the following components manually and follow the setup in
    - Choose **WinUSB** as the driver
    - Click "Replace Driver"
 
+<div align="center">
+<img src="captures/zadig.png" alt="Zadig Driver Setup" width="600"/>
+<br/>
+<em>Zadig USB driver installation for SDR devices (select WinUSB and click "Replace Driver").</em>
+</div>
+
 3. **PATH Verification**: Ensure all tools are accessible by opening a new PowerShell window and testing:
    ```powershell
    git --version
@@ -113,6 +126,27 @@ Create a folder (e.g., `TempestSDR`) and place:
 - Use Dependencies GUI to verify all DLLs are properly linked
 
 **Note**: After installation, restart PowerShell to refresh environment variables. If TempestSDR fails to load with DLL errors, use Dependencies GUI to verify plugins are 32-bit (should show "i386" in Machine field). Missing DLLs can be downloaded from https://fr.dll-files.com/ and placed in the same folder as the JAR or in `C:\Windows\SysWOW64`.
+
+<div align="center">
+<img src="captures/exdependencies.png" alt="Dependencies GUI" width="600"/>
+<br/>
+<em>Dependencies GUI: Use this tool to check if all required DLLs are properly linked and compatible (should show "i386" for 32-bit plugins).</em>
+</div>
+
+<div align="center">
+<table>
+   <tr>
+      <td>
+         <img src="captures/erreurdll.png" alt="DLL Error Example" width="290"/><br/>
+         <em>DLL Error Example: TempestSDR may fail to load if required DLLs are missing or incompatible. Use Dependencies GUI to identify missing files (shown in red).</em>
+      </td>
+      <td>
+         <img src="captures/erreurplugins.png" alt="Plugin Error Example" width="290"/><br/>
+         <em>Plugin Error Example: Ensure all TempestSDR plugins are 32-bit. If not, download the correct versions and place them in the application folder.</em>
+      </td>
+   </tr>
+</table>
+</div>
 
 ### Testing SDR Hardware Connection
 
@@ -157,6 +191,8 @@ java32 -jar JTempestSDR.jar
 
 <div align="center">
 <img src="captures/interface.png" alt="TempestSDR Interface" width="600"/>
+<br/>
+<em>TempestSDR main interface: Use this window to configure frequency, gain, filters, and view the captured video signal.</em>
 </div>
 
 **Key Interface Elements:**
@@ -199,9 +235,17 @@ Example frequency catalog:
 You will know if you have found a good frequency candidate if you see a signal like this in the spectrum:
 <div align="center">
 <img src="captures/frequenceEcran445.png" alt="Frequency Spectrum Example" width="600"/>
+<br/>
+<em>Example spectrum: Comb-shaped peaks around 445 MHz indicate video signal harmonics from the target monitor.</em>
 </div>
 
 ### 4.2 Configuring TempestSDR
+
+<div align="center">
+<img src="captures/optionload.png" alt="TempestSDR Load Options" width="400"/>
+<br/>
+<em>TempestSDR load options: Choose the appropriate source for your SDR device - USRP via UHD for native support, ExtIO for Windows drivers, or file loading for recorded samples.</em>
+</div>
 
 #### For Linux Users:
 
@@ -212,11 +256,18 @@ You will know if you have found a good frequency candidate if you see a signal l
    --args "type=b200" --rate 16000000 --ant RX2 --bw 16000000
    ```
    **Note**: On Raspberry Pi, use `--rate 8000000 --bw 8000000` for better performance
+
+<div align="center">
+<img src="captures/parametreuhd.png" alt="USRP UHD Parameters" width="600"/>
+<br/>
+<em>USRP UHD parameter configuration: Enter the connection arguments and sample rate settings for your USRP device.</em>
+</div>
+
 3. Press Enter and wait for USRP initialization
 4. Set additional parameters:
    * **Gain**: mid-range
    * **Low-pass filter**: first third of slider
-5. Tune to the frequency you observed with `CubicSDR`
+5. Tune to the frequency you observed with `GQRX`
 6. Press **Start** and adjust settings until you see something recognizable
 
 **Option 2: HackRF (File Recording Method)**
@@ -232,6 +283,12 @@ You will know if you have found a good frequency candidate if you see a signal l
    * **Frequency**: Use the one found with CubicSDR
    * Start recording
 
+<div align="center">
+<img src="captures/paramhackrfrecorder.png" alt="HackRF Recorder Parameters" width="600"/>
+<br/>
+<em>HackRF Recorder parameter configuration: Set gain values (LNA ~24, VGA ~32), enable amplifier, and configure sample rate for signal recording.</em>
+</div>
+
 2. In TempestSDR, go to `File > Load From file` and select the `.raw` file generated by HackRF_Recorder.py (located in the same directory as the script)
 3. Set the frequency to match the one used in recording
 4. Adjust settings as needed
@@ -244,6 +301,22 @@ You will know if you have found a good frequency candidate if you see a signal l
 3. In the dialog that appears, select the appropriate DLL:
    * For HackRF: `ExtIO_HackRF.dll`
    * For USRP: `ExtIO_USRP.dll`
+
+<div align="center">
+<table>
+   <tr>
+      <td>
+         <img src="captures/extiohackrf.png" alt="ExtIO HackRF Selection" width="400"/><br/>
+         <em>ExtIO HackRF configuration: Select ExtIO_HackRF.dll for HackRF One support on Windows.</em>
+      </td>
+      <td>
+         <img src="captures/extiousrp.png" alt="ExtIO USRP Selection" width="400"/><br/>
+         <em>ExtIO USRP configuration: Select ExtIO_USRP.dll for USRP device support on Windows.</em>
+      </td>
+   </tr>
+</table>
+</div>
+
 4. Set parameters:
    * **Sample rate**: 16 Msps (or 8 Msps for lower-end systems)
    * **Gain**: mid-range for USRP, LNA ~24 / VGA ~32 for HackRF
