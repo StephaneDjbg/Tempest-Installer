@@ -112,90 +112,90 @@ windows:
     @echo ">>> Windows automated install (PowerShell)"
     powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "\
     $$ErrorActionPreference='Stop';\
-    Write-Host '=== DEBUT INSTALLATION TEMPEST SDR ===' -ForegroundColor Green;\
-    Write-Host '[ETAPE 1/10] Verification Chocolatey...' -ForegroundColor Yellow;\
+    Write-Host '=== TEMPEST SDR INSTALLATION START ===' -ForegroundColor Green;\
+    Write-Host '[STEP 1/10] Checking Chocolatey...' -ForegroundColor Yellow;\
     if(-not(Get-Command choco -EA SilentlyContinue)){\
-        Write-Host '  -> Chocolatey non trouve, installation en cours...' -ForegroundColor Cyan;\
+        Write-Host '  -> Chocolatey not found, installing...' -ForegroundColor Cyan;\
         [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072;\
-        Write-Host '  -> Telechargement script Chocolatey...' -ForegroundColor Cyan;\
+        Write-Host '  -> Downloading Chocolatey script...' -ForegroundColor Cyan;\
         iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'));\
-        Write-Host '  -> Mise a jour PATH pour Chocolatey...' -ForegroundColor Cyan;\
+        Write-Host '  -> Updating PATH for Chocolatey...' -ForegroundColor Cyan;\
         $$env:PATH = [Environment]::GetEnvironmentVariable('PATH','Machine') + ';' + [Environment]::GetEnvironmentVariable('PATH','User');\
-        Write-Host '  -> Chocolatey installe avec succes!' -ForegroundColor Green;\
+        Write-Host '  -> Chocolatey installed successfully!' -ForegroundColor Green;\
     } else {\
-        Write-Host '  -> Chocolatey deja installe, passage a l''etape suivante' -ForegroundColor Green;\
+        Write-Host '  -> Chocolatey already installed, proceeding...' -ForegroundColor Green;\
     };\
     if(-not(Get-Command choco -EA SilentlyContinue)){\
-        Write-Host '  -> Ajout manuel du PATH Chocolatey...' -ForegroundColor Yellow;\
+        Write-Host '  -> Adding Chocolatey PATH manually...' -ForegroundColor Yellow;\
         $$env:PATH += ';C:\\ProgramData\\chocolatey\\bin';\
     };\
-    Write-Host '[ETAPE 2/10] Installation packages de base...' -ForegroundColor Yellow;\
-    Write-Host '  -> Installation: git, cmake, python, vcredist (peut prendre 5-10 min)...' -ForegroundColor Cyan;\
+    Write-Host '[STEP 2/10] Installing base packages...' -ForegroundColor Yellow;\
+    Write-Host '  -> Installing: git, cmake, python, vcredist (may take 5-10 min)...' -ForegroundColor Cyan;\
     choco upgrade -y git cmake python vcredist140 vcredist2008;\
-    Write-Host '  -> Packages de base installes!' -ForegroundColor Green;\
-    Write-Host '[ETAPE 3/10] Installation Java 32-bit...' -ForegroundColor Yellow;\
-    Write-Host '  -> Telechargement Java 8 JRE 32-bit (peut prendre 3-5 min)...' -ForegroundColor Cyan;\
+    Write-Host '  -> Base packages installed!' -ForegroundColor Green;\
+    Write-Host '[STEP 3/10] Installing Java 32-bit...' -ForegroundColor Yellow;\
+    Write-Host '  -> Downloading Java 8 JRE 32-bit (may take 3-5 min)...' -ForegroundColor Cyan;\
     choco upgrade -y temurin8jre --x86;\
-    Write-Host '  -> Java 32-bit installe!' -ForegroundColor Green;\
-    Write-Host '[ETAPE 4/10] Configuration Java PATH et alias...' -ForegroundColor Yellow;\
+    Write-Host '  -> Java 32-bit installed!' -ForegroundColor Green;\
+    Write-Host '[STEP 4/10] Configuring Java PATH and alias...' -ForegroundColor Yellow;\
     $$javaPath = Get-ChildItem 'C:\\Program Files (x86)\\Eclipse Adoptium\\' -Directory | Where-Object {$$_.Name -like 'jre-8*'} | Select-Object -First 1 -ExpandProperty FullName;\
     if($$javaPath) {\
-        Write-Host \"  -> Java trouve dans: $$javaPath\" -ForegroundColor Cyan;\
+        Write-Host \"  -> Java found in: $$javaPath\" -ForegroundColor Cyan;\
         $$javaBinPath = Join-Path $$javaPath 'bin';\
         $$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');\
         if($$currentPath -notlike \"*$$javaBinPath*\"){\
-            Write-Host '  -> Ajout Java au PATH utilisateur...' -ForegroundColor Cyan;\
+            Write-Host '  -> Adding Java to user PATH...' -ForegroundColor Cyan;\
             [Environment]::SetEnvironmentVariable('PATH', $$currentPath + ';' + $$javaBinPath, 'User');\
             $$env:PATH += ';' + $$javaBinPath;\
         };\
-        Write-Host \"  -> Java 32-bit ajoute au PATH: $$javaBinPath\" -ForegroundColor Green;\
-        Write-Host '  -> Creation alias java32.exe...' -ForegroundColor Cyan;\
+        Write-Host \"  -> Java 32-bit added to PATH: $$javaBinPath\" -ForegroundColor Green;\
+        Write-Host '  -> Creating java32.exe alias...' -ForegroundColor Cyan;\
         Copy-Item (Join-Path $$javaBinPath 'java.exe') -Dest (Join-Path $$javaBinPath 'java32.exe') -Force;\
-        Write-Host '  -> Alias java32.exe cree avec succes!' -ForegroundColor Green;\
+        Write-Host '  -> java32.exe alias created successfully!' -ForegroundColor Green;\
     } else {\
-        Write-Host '  -> ATTENTION: Java 32-bit non trouve!' -ForegroundColor Red;\
+        Write-Host '  -> WARNING: Java 32-bit not found!' -ForegroundColor Red;\
     };\
-    Write-Host '[ETAPE 5/10] Installation Zadig (drivers USB)...' -ForegroundColor Yellow;\
-    Write-Host '  -> Installation Zadig...' -ForegroundColor Cyan;\
+    Write-Host '[STEP 5/10] Installing Zadig (USB drivers)...' -ForegroundColor Yellow;\
+    Write-Host '  -> Installing Zadig...' -ForegroundColor Cyan;\
     choco upgrade -y zadig;\
-    Write-Host '  -> Zadig installe!' -ForegroundColor Green;\
-    Write-Host '[ETAPE 6/10] Creation structure TempestSDR...' -ForegroundColor Yellow;\
+    Write-Host '  -> Zadig installed!' -ForegroundColor Green;\
+    Write-Host '[STEP 6/10] Creating TempestSDR directory structure...' -ForegroundColor Yellow;\
     $$root='$(WIN_PREFIX)';\
-    Write-Host \"  -> Creation dossiers dans: $$root\" -ForegroundColor Cyan;\
+    Write-Host \"  -> Creating directories in: $$root\" -ForegroundColor Cyan;\
     New-Item -ItemType Directory -Force -Path $$root\\JavaGUI | Out-Null;\
     New-Item -ItemType Directory -Force -Path $$root\\JavaGUI\\lib\\WINDOWS\\X86 | Out-Null;\
     New-Item -ItemType Directory -Force -Path $$root\\ExtIO | Out-Null;\
-    Write-Host '  -> Structure de dossiers creee!' -ForegroundColor Green;\
-    Write-Host '[ETAPE 7/10] Telechargement TempestSDR JAR...' -ForegroundColor Yellow;\
+    Write-Host '  -> Directory structure created!' -ForegroundColor Green;\
+    Write-Host '[STEP 7/10] Downloading TempestSDR JAR...' -ForegroundColor Yellow;\
     if(-not(Test-Path $$root\\JavaGUI\\JTempestSDR.jar)) {\
-        Write-Host '  -> Telechargement JTempestSDR.jar (peut prendre 2-3 min)...' -ForegroundColor Cyan;\
+        Write-Host '  -> Downloading JTempestSDR.jar (may take 2-3 min)...' -ForegroundColor Cyan;\
         Invoke-WebRequest 'https://github.com/martinmarinov/TempestSDR/raw/master/Release/JavaGUI/JTempestSDR.jar' -OutFile $$root\\JavaGUI\\JTempestSDR.jar;\
-        Write-Host '  -> JTempestSDR.jar telecharge!' -ForegroundColor Green;\
+        Write-Host '  -> JTempestSDR.jar downloaded!' -ForegroundColor Green;\
     } else {\
-        Write-Host '  -> JTempestSDR.jar deja present, passage a l''etape suivante' -ForegroundColor Green;\
+        Write-Host '  -> JTempestSDR.jar already present, skipping...' -ForegroundColor Green;\
     };\
-    Write-Host '[ETAPE 7b/10] Telechargement plugins TempestSDR...' -ForegroundColor Yellow;\
+    Write-Host '[STEP 7b/10] Downloading TempestSDR plugins...' -ForegroundColor Yellow;\
     $$plugins=@('TSDRPlugin_RawFile.dll','TSDRPlugin_ExtIO.dll');\
     foreach($$dll in $$plugins){\
         $$dllPath = \"$$root\\JavaGUI\\lib\\WINDOWS\\X86\\$$dll\";\
         if(-not(Test-Path $$dllPath)) {\
             try {\
-                Write-Host \"  -> Telechargement $$dll...\" -ForegroundColor Cyan;\
+                Write-Host \"  -> Downloading $$dll...\" -ForegroundColor Cyan;\
                 Invoke-WebRequest \"https://github.com/martinmarinov/TempestSDR/raw/master/Release/dlls/WINDOWS/X86/$$dll\" -OutFile $$dllPath;\
-                Write-Host \"  -> $$dll telecharge!\" -ForegroundColor Green;\
+                Write-Host \"  -> $$dll downloaded!\" -ForegroundColor Green;\
             } catch {\
-                Write-Host \"  -> ATTENTION: Plugin $$dll introuvable\" -ForegroundColor Red;\
+                Write-Host \"  -> WARNING: Plugin $$dll not found\" -ForegroundColor Red;\
             }\
         } else {\
-            Write-Host \"  -> $$dll deja present\" -ForegroundColor Green;\
+            Write-Host \"  -> $$dll already present\" -ForegroundColor Green;\
         }\
     };\
-    Write-Host '[ETAPE 8/10] Installation UHD 3.9.4 (USRP)...' -ForegroundColor Yellow;\
-    Write-Host '  -> Telechargement UHD installer (90MB, peut prendre 5-10 min)...' -ForegroundColor Cyan;\
+    Write-Host '[STEP 8/10] Installing UHD 3.9.4 (USRP)...' -ForegroundColor Yellow;\
+    Write-Host '  -> Downloading UHD installer (90MB, may take 5-10 min)...' -ForegroundColor Cyan;\
     $$uExe=$$env:TEMP+'\\uhd.exe'; Invoke-WebRequest '$(UHD_URL)' -OutFile $$uExe;\
-    Write-Host '  -> Telechargement UHD termine, installation silencieuse...' -ForegroundColor Cyan;\
+    Write-Host '  -> UHD download complete, installing silently...' -ForegroundColor Cyan;\
     Start-Process $$uExe -ArgumentList '/S' -Wait;\
-    Write-Host '  -> UHD installe! Recherche libusb-1.0.dll...' -ForegroundColor Green;\
+    Write-Host '  -> UHD installed! Searching for libusb-1.0.dll...' -ForegroundColor Green;\
     $$uhdPaths = @(\
         'C:\\Program Files\\UHD\\bin\\libusb-1.0.dll',\
         'C:\\Program Files (x86)\\UHD\\bin\\libusb-1.0.dll',\
@@ -204,122 +204,122 @@ windows:
     );\
     $$uhdFound = $$false;\
     foreach($$path in $$uhdPaths) {\
-        Write-Host \"  -> Verification: $$path\" -ForegroundColor Cyan;\
+        Write-Host \"  -> Checking: $$path\" -ForegroundColor Cyan;\
         if(Test-Path $$path) {\
             Copy-Item $$path -Dest $$root\\JavaGUI\\lib\\WINDOWS\\X86 -Force;\
-            Write-Host \"  -> Trouve et copie: $$path\" -ForegroundColor Green;\
+            Write-Host \"  -> Found and copied: $$path\" -ForegroundColor Green;\
             $$uhdFound = $$true;\
             break;\
         }\
     };\
     if(-not $$uhdFound) { \
-        Write-Host '  -> libusb-1.0.dll UHD non trouve, telechargement version standalone...' -ForegroundColor Yellow;\
+        Write-Host '  -> UHD libusb-1.0.dll not found, downloading standalone version...' -ForegroundColor Yellow;\
         try {\
             Invoke-WebRequest 'https://github.com/libusb/libusb/releases/download/v1.0.26/libusb-1.0.26-binaries.7z' -OutFile $$env:TEMP\\libusb.7z;\
-            Write-Host '  -> libusb standalone telecharge (extraction manuelle requise)' -ForegroundColor Yellow;\
-        } catch { Write-Host '  -> ATTENTION: Echec telechargement libusb-1.0.dll' -ForegroundColor Red }\
+            Write-Host '  -> Standalone libusb downloaded (manual extraction required)' -ForegroundColor Yellow;\
+        } catch { Write-Host '  -> WARNING: Failed to download libusb-1.0.dll' -ForegroundColor Red }\
     };\
-    Write-Host '[ETAPE 9/10] Installation HackRF...' -ForegroundColor Yellow;\
+    Write-Host '[STEP 9/10] Installing HackRF...' -ForegroundColor Yellow;\
     if(-not(Test-Path $$env:TEMP\\hr\\hackrf_info.exe)) {\
-        Write-Host '  -> Telechargement outils HackRF (peut prendre 3-5 min)...' -ForegroundColor Cyan;\
+        Write-Host '  -> Downloading HackRF tools (may take 3-5 min)...' -ForegroundColor Cyan;\
         $$z=$$env:TEMP+'\\hackrf.zip';\
         try {\
             Remove-Item $$z -Force -ErrorAction SilentlyContinue;\
             Invoke-WebRequest '$(HRF_URL)' -OutFile $$z;\
-            Write-Host '  -> Verification taille fichier...' -ForegroundColor Cyan;\
+            Write-Host '  -> Verifying file size...' -ForegroundColor Cyan;\
             if((Get-Item $$z).Length -lt 1000) {\
                 throw 'Downloaded file too small';\
             };\
-            Write-Host '  -> Extraction archive HackRF...' -ForegroundColor Cyan;\
+            Write-Host '  -> Extracting HackRF archive...' -ForegroundColor Cyan;\
             Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
-            Write-Host '  -> HackRF telecharge et extrait!' -ForegroundColor Green;\
+            Write-Host '  -> HackRF downloaded and extracted!' -ForegroundColor Green;\
         } catch {\
-            Write-Host '  -> Echec telechargement HackRF, tentative URL alternative...' -ForegroundColor Yellow;\
+            Write-Host '  -> HackRF download failed, trying alternative URL...' -ForegroundColor Yellow;\
             try {\
                 Remove-Item $$z -Force -ErrorAction SilentlyContinue;\
                 Invoke-WebRequest 'https://github.com/greatscottgadgets/hackrf/releases/download/v$(HRF_VER)/hackrf-$(HRF_VER).zip' -OutFile $$z;\
                 Expand-Archive $$z -Dest $$env:TEMP\\hr -Force;\
-                Write-Host '  -> HackRF telecharge via URL alternative!' -ForegroundColor Green;\
+                Write-Host '  -> HackRF downloaded via alternative URL!' -ForegroundColor Green;\
             } catch {\
-                Write-Host '  -> ERREUR: Echec des deux URLs HackRF. Telechargement manuel requis.' -ForegroundColor Red;\
+                Write-Host '  -> ERROR: Both HackRF URLs failed. Manual download required.' -ForegroundColor Red;\
             }\
         };\
     } else {\
-        Write-Host '  -> Outils HackRF deja telecharges' -ForegroundColor Green;\
+        Write-Host '  -> HackRF tools already downloaded' -ForegroundColor Green;\
     };\
-    Write-Host '[ETAPE 10/10] Telechargement drivers ExtIO...' -ForegroundColor Yellow;\
+    Write-Host '[STEP 10/10] Downloading ExtIO drivers...' -ForegroundColor Yellow;\
     if(-not(Test-Path $$root\\ExtIO\\ExtIO_HackRF.dll)) {\
         try {\
-            Write-Host '  -> Telechargement ExtIO_HackRF.dll...' -ForegroundColor Cyan;\
+            Write-Host '  -> Downloading ExtIO_HackRF.dll...' -ForegroundColor Cyan;\
             Invoke-WebRequest 'https://github.com/jocover/ExtIO_HackRF/releases/download/v1.0/ExtIO_HackRF.dll' -OutFile $$root\\ExtIO\\ExtIO_HackRF.dll;\
-            Write-Host '  -> ExtIO_HackRF.dll telecharge!' -ForegroundColor Green;\
-        } catch { Write-Host '  -> ATTENTION: Echec telechargement ExtIO_HackRF.dll' -ForegroundColor Red };\
+            Write-Host '  -> ExtIO_HackRF.dll downloaded!' -ForegroundColor Green;\
+        } catch { Write-Host '  -> WARNING: ExtIO_HackRF.dll download failed' -ForegroundColor Red };\
     } else {\
-        Write-Host '  -> ExtIO_HackRF.dll deja present' -ForegroundColor Green;\
+        Write-Host '  -> ExtIO_HackRF.dll already present' -ForegroundColor Green;\
     };\
     if(-not(Test-Path $$root\\ExtIO\\ExtIO_USRP.dll)) {\
-        Write-Host '  -> Telechargement package ExtIO (USRP + autres)...' -ForegroundColor Cyan;\
+        Write-Host '  -> Downloading ExtIO package (USRP + others)...' -ForegroundColor Cyan;\
         try {\
             $$extioZip=$$env:TEMP+'\\extio_package.zip';\
             Invoke-WebRequest 'http://spench.net/drupal/files/ExtIO_USRP+FCD+RTL2832U+BorIP_Setup.zip' -OutFile $$extioZip;\
-            Write-Host '  -> Extraction package ExtIO...' -ForegroundColor Cyan;\
+            Write-Host '  -> Extracting ExtIO package...' -ForegroundColor Cyan;\
             Expand-Archive $$extioZip -Dest $$env:TEMP\\extio_temp -Force;\
             if(Test-Path $$env:TEMP\\extio_temp\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
             if(Test-Path $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll) { Copy-Item $$env:TEMP\\extio_temp\\*\\ExtIO_USRP.dll -Dest $$root\\ExtIO\\ -Force };\
-            Write-Host '  -> ExtIO_USRP.dll extrait avec succes!' -ForegroundColor Green;\
-        } catch { Write-Host '  -> ATTENTION: Echec telechargement/extraction package ExtIO' -ForegroundColor Red };\
+            Write-Host '  -> ExtIO_USRP.dll extracted successfully!' -ForegroundColor Green;\
+        } catch { Write-Host '  -> WARNING: ExtIO package download/extraction failed' -ForegroundColor Red };\
     } else {\
-        Write-Host '  -> ExtIO_USRP.dll deja present' -ForegroundColor Green;\
+        Write-Host '  -> ExtIO_USRP.dll already present' -ForegroundColor Green;\
     };\
-    Write-Host '[FINALISATION] Ajout outils au PATH systeme...' -ForegroundColor Yellow;\
+    Write-Host '[FINALIZATION] Adding tools to system PATH...' -ForegroundColor Yellow;\
     $$currentPath = [Environment]::GetEnvironmentVariable('PATH', 'User');\
     $$uhdPath = if(Test-Path 'C:\\Program Files\\UHD\\bin') { 'C:\\Program Files\\UHD\\bin' } else { 'C:\\Program Files (x86)\\UHD\\bin' };\
     $$hackrfPath = $$root + '\\tools';\
     $$extioPath = $$root + '\\ExtIO';\
-    Write-Host \"  -> Configuration PATH UHD: $$uhdPath\" -ForegroundColor Cyan;\
+    Write-Host \"  -> Configuring UHD PATH: $$uhdPath\" -ForegroundColor Cyan;\
     if($$currentPath -notlike \"*$$uhdPath*\"){\
         [Environment]::SetEnvironmentVariable('PATH', $$currentPath + ';' + $$uhdPath, 'User');\
         $$env:PATH += ';' + $$uhdPath;\
-        Write-Host '  -> UHD ajoute au PATH' -ForegroundColor Green;\
+        Write-Host '  -> UHD added to PATH' -ForegroundColor Green;\
     } else {\
-        Write-Host '  -> UHD deja dans le PATH' -ForegroundColor Green;\
+        Write-Host '  -> UHD already in PATH' -ForegroundColor Green;\
     };\
-    Write-Host \"  -> Configuration PATH HackRF: $$hackrfPath\" -ForegroundColor Cyan;\
+    Write-Host \"  -> Configuring HackRF PATH: $$hackrfPath\" -ForegroundColor Cyan;\
     if($$currentPath -notlike \"*$$hackrfPath*\"){\
         [Environment]::SetEnvironmentVariable('PATH', [Environment]::GetEnvironmentVariable('PATH', 'User') + ';' + $$hackrfPath, 'User');\
         $$env:PATH += ';' + $$hackrfPath;\
-        Write-Host '  -> HackRF ajoute au PATH' -ForegroundColor Green;\
+        Write-Host '  -> HackRF added to PATH' -ForegroundColor Green;\
     } else {\
-        Write-Host '  -> HackRF deja dans le PATH' -ForegroundColor Green;\
+        Write-Host '  -> HackRF already in PATH' -ForegroundColor Green;\
     };\
-    Write-Host \"  -> Configuration PATH ExtIO: $$extioPath\" -ForegroundColor Cyan;\
+    Write-Host \"  -> Configuring ExtIO PATH: $$extioPath\" -ForegroundColor Cyan;\
     if($$currentPath -notlike \"*$$extioPath*\"){\
         [Environment]::SetEnvironmentVariable('PATH', [Environment]::GetEnvironmentVariable('PATH', 'User') + ';' + $$extioPath, 'User');\
         $$env:PATH += ';' + $$extioPath;\
-        Write-Host '  -> ExtIO ajoute au PATH' -ForegroundColor Green;\
+        Write-Host '  -> ExtIO added to PATH' -ForegroundColor Green;\
     } else {\
-        Write-Host '  -> ExtIO deja dans le PATH' -ForegroundColor Green;\
+        Write-Host '  -> ExtIO already in PATH' -ForegroundColor Green;\
     };\
     Write-Host '';\
     Write-Host '=== INSTALLATION COMPLETE ===' -ForegroundColor Green;\
     Write-Host '';\
-    Write-Host 'ETAPE 1: Installer drivers USB' -ForegroundColor Yellow;\
+    Write-Host 'STEP 1: Install USB drivers' -ForegroundColor Yellow;\
     Write-Host '  Run Zadig and install drivers for HackRF/USRP';\
     Write-Host '';\
-    Write-Host 'ETAPE 2: Tester vos peripheriques' -ForegroundColor Yellow;\
+    Write-Host 'STEP 2: Test your devices' -ForegroundColor Yellow;\
     Write-Host '  UHD/USRP : uhd_find_devices';\
     Write-Host '  HackRF   : hackrf_info';\
     Write-Host '';\
-    Write-Host 'ETAPE 3: Lancer TempestSDR' -ForegroundColor Yellow;\
+    Write-Host 'STEP 3: Launch TempestSDR' -ForegroundColor Yellow;\
     Write-Host \"  java32 -jar $$root\\JavaGUI\\JTempestSDR.jar\";\
-    Write-Host \"  OU: java -jar $$root\\JavaGUI\\JTempestSDR.jar\";\
+    Write-Host \"  OR: java -jar $$root\\JavaGUI\\JTempestSDR.jar\";\
     Write-Host '';\
-    Write-Host \"ExtIO files disponibles dans: $$root\\ExtIO\\\" -ForegroundColor Cyan;\
-    Write-Host 'TempestSDR chargera automatiquement ExtIO_HackRF.dll et ExtIO_USRP.dll';\
+    Write-Host \"ExtIO files available in: $$root\\ExtIO\\\" -ForegroundColor Cyan;\
+    Write-Host 'TempestSDR will auto-load ExtIO_HackRF.dll and ExtIO_USRP.dll';\
     Write-Host '';\
-    Write-Host 'NOTE: UHD 3.9.4 installe pour compatibilite FPGA v4 avec ExtIO_USRP' -ForegroundColor Gray;\
-    Write-Host 'NOTE: Redemarrer le terminal pour utiliser les nouvelles variables PATH' -ForegroundColor Gray;\
-    Write-Host 'NOTE: Utiliser java32 pour garantir execution Java 32-bit' -ForegroundColor Gray;\
+    Write-Host 'NOTE: UHD 3.9.4 installed for FPGA v4 compatibility with ExtIO_USRP' -ForegroundColor Gray;\
+    Write-Host 'NOTE: Restart terminal to use new PATH variables' -ForegroundColor Gray;\
+    Write-Host 'NOTE: Use java32 command for guaranteed 32-bit Java execution' -ForegroundColor Gray;\
     "
     @echo windows > windows
 
