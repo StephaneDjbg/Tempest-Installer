@@ -157,19 +157,15 @@ java32 -jar JTempestSDR.jar
 - **Aut**: Auto-correlation for sync detection
 - **Main Display**: Shows captured video signal
 - **Autocorrelation Graph**: Helps with signal synchronization
+- **Image Panning**: Keeps the image centered during capture (use Auto button and it should automatically adjust)
+- **Video Parameters**: Adjust resolution, framerate, and other video settings to match the target monitor's output, you can use the presets to look for common video modes. **Important** : You can use the A button that will adjust the framerate to keep the image stable but it is performance intensive, so it is not recommended for low-end systems like Raspberry Pi.
 
-Add screenshots here:
-
-* `captures/windows_installation.jpg`
-* `captures/linux_terminal_build.jpg`
-
----
 
 ## 4. Step-by-Step Usage Guide
 
 ### 4.1 Finding the Right Frequency
 
-Use `CubicSDR` or `GQRX` to locate comb-shaped peaks on the spectrum, typical of video signal harmonics.
+Use `CubicSDR` or `GQRX` with the right device set in the parameters, use the gain parameters set below or adjust to see a nice signal in the spectrum to locate comb-shaped peaks on the spectrum, typical of video signal harmonics. To see the best results, if you have access to the target computer, use an image with a good contrast (e.g., a checkerboard pattern) to make it easier to identify the frequency peaks or you can use the video : tempest_test_elize_song.mp4 provided. When scanning in AM mode, you should ear a music playing as the video is playing on the target computer. The typical range is between 300 MHz and 500 MHz, but it can vary based on the cable type and resolution (see below).
 
 Example frequency catalog:
 
@@ -189,6 +185,11 @@ Example frequency catalog:
 | DisplayPort | 1152x864   | ~60 Hz     | ~405 MHz        |
 | DisplayPort | 800x600   | ~75 Hz     | ~335/420 MHz        |
 | DisplayPort | 800x600   | ~60 Hz     | ~335/410 MHz        |  
+
+You will know if you have found a good frequency candidate if you see a signal like this in the spectrum:
+<div align="center">
+<img src="captures/frequenceEcran445.png" alt="Frequency Spectrum Example" width="600"/>
+</div>
 
 ### 4.2 Configuring TempestSDR
 
