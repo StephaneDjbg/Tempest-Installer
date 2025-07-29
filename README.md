@@ -317,12 +317,41 @@ You will know if you have found a good frequency candidate if you see a signal l
 </table>
 </div>
 
-4. Set parameters:
+4. Configure ExtIO parameters in the dialog window:
    * **Sample rate**: 16 Msps (or 8 Msps for lower-end systems)
-   * **Gain**: mid-range for USRP, LNA ~24 / VGA ~32 for HackRF
-   * **Low-pass filter**: first third of slider
-   * **Frequency**: Use the one found with CubicSDR
-5. Press **Start** and adjust settings until you see something recognizable
+   * **For HackRF**: LNA Gain ~24, VGA Gain ~32, enable amplifier
+   * **For USRP**: Set gain to mid-range (around 30-40 dB)
+
+### 4.3 TempestSDR Parameter Configuration
+
+Once your SDR is loaded and connected (regardless of OS or method), configure TempestSDR parameters:
+
+**Essential Parameters:**
+1. **Frequency**: Set the target frequency found with CubicSDR/GQRX
+2. **Gain** (in TempestSDR): Fine-tune signal amplification 
+   * Start with mid-range values
+   * Increase if signal is too weak
+   * Decrease if signal is saturated
+3. **Low-pass filter (Lpass)**: 
+   * Start with first third of slider
+   * Reduce bandwidth to eliminate noise
+   * Too low will remove useful signal components
+4. **Auto-correlation (Aut)**: Enable for automatic sync detection
+5. **Video Parameters**: 
+   * Try presets for common resolutions
+   * Manually adjust if needed to match target display
+
+**Signal Quality Optimization:**
+* Monitor the autocorrelation graph for sync patterns
+* Adjust frequency in small increments (±0.1-0.5 MHz)
+* Use the "A" button for automatic framerate adjustment (avoid on low-end systems)
+* Enable "Auto" panning to keep image centered
+
+**Starting the Capture:**
+1. Press **Start** to begin signal capture
+2. Adjust parameters while monitoring the display
+3. Look for recognizable patterns or text
+4. Fine-tune until you achieve a stable, clear image
 
 Screenshot zones:
 
