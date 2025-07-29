@@ -20,7 +20,14 @@ This guide explains how to perform a visual TEMPEST attack using TempestSDR with
 * **Antenna**: Any high-gain antenna (e.g., Yagi type) operating in the 380–500 MHz range
 * **Cable**: Target HDMI, DVI, VGA, or DisplayPort cable (preferably poorly shielded)
 * **LNA (optional)**: Low-Noise Amplifier to improve reception
+### LNA Comparison
 
+| Model      | Frequency Range | Gain (typ.) | Noise Figure | Voltage | Notes                       |
+|------------|----------------|-------------|--------------|---------|-----------------------------|
+| ZKL-1R5+   | 10–1500 MHz    | +24 dB      | 2.7 dB       | 12 V    | Lower NF, wider band        |
+| ZRL-700+   | 0.1–700 MHz    | +28 dB      | 3.5 dB       | 12 V    | High power, good linearity  |
+
+**Recommendation:** For a typical TEMPEST setup in the 380–500 MHz range, the ZKL-1R5+ provides better noise performance. However, the ZRL-700+ is still effective and offers a bit more gain. Use a good power supply and keep cables short.
 ---
 
 ## 3. Quick Environment Setup
