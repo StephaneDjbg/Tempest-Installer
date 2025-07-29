@@ -344,13 +344,13 @@ clean-linux:
 clean-windows:
 	@echo ">>> cleaning Windows build artifacts"
 	powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "\
-	if (Test-Path '$(WIN_PREFIX)') { \
-	    if (Test-Path '$(WIN_PREFIX)\\JavaGUI\\lib\\WINDOWS\\X86') { \
-	        Remove-Item -Recurse -Force '$(WIN_PREFIX)\\JavaGUI\\lib\\WINDOWS\\X86' -ErrorAction SilentlyContinue; \
-	    } \
-	    if (Test-Path '$(WIN_PREFIX)\\JavaGUI\\JTempestSDR.jar') { \
-	        Remove-Item -Force '$(WIN_PREFIX)\\JavaGUI\\JTempestSDR.jar' -ErrorAction SilentlyContinue; \
-	    } \
-	}; \
-	if (Test-Path 'windows') { Remove-Item -Force 'windows' -ErrorAction SilentlyContinue }; \
-	Write-Host 'Windows artifacts cleaned'"
+    if (Test-Path '$(WIN_PREFIX)') { \
+        if (Test-Path '$(WIN_PREFIX)\\JavaGUI\\lib\\WINDOWS\\X86') { \
+            Remove-Item -Recurse -Force '$(WIN_PREFIX)\\JavaGUI\\lib\\WINDOWS\\X86' -ErrorAction SilentlyContinue; \
+        } \
+        if (Test-Path '$(WIN_PREFIX)\\JavaGUI\\JTempestSDR.jar') { \
+            Remove-Item -Force '$(WIN_PREFIX)\\JavaGUI\\JTempestSDR.jar' -ErrorAction SilentlyContinue; \
+        } \
+    }; \
+    if (Test-Path 'windows') { Remove-Item -Force 'windows' -ErrorAction SilentlyContinue }; \
+    Write-Host 'Windows artifacts cleaned'"
