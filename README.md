@@ -391,12 +391,7 @@ Once your SDR is loaded and connected (regardless of OS or method), configure Te
 5. Look for recognizable patterns or text
 6. Fine-tune until you achieve a stable, clear image
 
-Screenshot zones:
 
-* `captures/tempestsdr_settings.jpg`
-* `captures/signal_peaks_cubicsdr.jpg`
-
----
 
 ## 5. Manual Synchronization Tips
 
@@ -420,12 +415,11 @@ If no image appears:
 * **SDR**: HackRF or USRP
 * **Distance**: 1–2 meters
 
-Images:
-
-* `captures/example_damier.jpg`
-* `captures/example_terminal.jpg`
-
----
+<div align="center">
+<img src="captures/imagecaptured.png" alt="Example TEMPEST Capture" width="600"/>
+<br/>
+<em>Example successful TEMPEST capture: Clear text and interface elements recovered from electromagnetic emissions, demonstrating the effectiveness of proper frequency tuning and correlation window adjustment.</em>
+</div>
 
 ## 7. FAQ / Troubleshooting
 
