@@ -27,6 +27,20 @@ This guide explains how to perform a visual TEMPEST attack using TempestSDR with
 
 You can use the custom Git repository [tempest-installer](https://gitlab.laas.fr/sdajbog/tempest-installer) with a multiplatform Makefile for automated setup under Windows and Linux:
 
+**Prerequisites (before running Makefile):**
+- **Linux**: Git, Make, and sudo access
+  ```bash
+  sudo apt update && sudo apt install -y git build-essential
+  ```
+- **Windows**: Git, PowerShell (as Administrator), and Chocolatey
+  ```powershell
+  # Install Chocolatey first (run as Administrator)
+  Set-ExecutionPolicy Bypass -Scope Process -Force
+  [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
+  iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+  ```
+
+**Installation:**
 ```bash
 git clone https://gitlab.laas.fr/sdajbog/tempest-installer.git
 cd tempest-installer
@@ -35,18 +49,14 @@ make
 
 The Makefile will handle:
 
-* Dependency installation
-* Building or launching TempestSDR with correct paths
+* Dependency installation (packages, drivers, tools)
+* Building or downloading TempestSDR with correct paths
 * Copying necessary DLLs (on Windows)
-
-Ensure you have:
-
-* Zadig installed (Windows, for HackRF)
-* UHD driver installed (for USRP)
+* Setting up HackRF Transfer GUI (Linux)
 
 **Note for Linux users**: The automated setup is primarily tested on Ubuntu Desktop and Raspberry Pi OS. If you're using a different Linux distribution or architecture, you may encounter compilation issues due to missing dependencies or incompatible package versions. In such cases, manual installation of dependencies and building from source may be required.
 
-**Note for Windows users**: If the automated Makefile installation hangs or stalls, press Enter in the terminal to continue. For more reliable installation, consider manual setup instead of relying on the Makefile automation.
+**Note for Windows users**: If the automated Makefile installation hangs or stalls, press Enter in the terminal to continue. **For more reliable installation, consider manual setup instead of relying on the Makefile automation** - see below for detailed manual Windows installation.
 
 ### Manual Windows Installation (Recommended)
 
